@@ -1,0 +1,1 @@
+SessionLess is an industry vetted OPEN SOURCE event conference CRM.
