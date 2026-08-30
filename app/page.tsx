@@ -1,5 +1,5 @@
 const Page = () => {
-  return <>Home page</>;
+  return <>Enabled convex static deployment</>;
 };
 
 export default Page;
