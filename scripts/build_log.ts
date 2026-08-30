@@ -1,5 +1,4 @@
 import { updateLog } from "@/scripts/parse_markdown";
-import { buildPrompt } from "./llm";
 import {
   buildEvidence,
   ChangedFile,
@@ -46,7 +45,7 @@ async function main() {
 
   const evidence: string = buildEvidence(commit, changedFiles);
 
-  
+  // console.log(evidence)
   await updateLog(commit, evidence);
 }
 

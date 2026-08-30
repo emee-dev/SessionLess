@@ -173,7 +173,9 @@ function isSensitivePath(filePath: string): boolean {
     normalized.includes("/build/") ||
     normalized.includes("hackathon.md") ||
     normalized.startsWith("components/ui/") ||
-    normalized.includes("/components/ui/")
+    normalized.includes("/components/ui/") ||
+    normalized.startsWith("out/") ||
+    normalized.includes("/out/")
   );
 }
 
