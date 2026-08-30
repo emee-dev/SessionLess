@@ -1,4 +1,4 @@
-import { stripCodeFence } from "./utils";
+import { formatCommitHeading, GitCommit, stripCodeFence } from "./utils";
 
 type LlmResponse = {
   choices?: Array<{
@@ -15,8 +15,8 @@ const OPENROUTER_MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free";
 const GROQ_MODEL = "openai/gpt-oss-120b";
 
 const SYSTEM_PROMPT: string =
-  "You are an evidence-based software project historian. " +
-  "Never invent facts and never expose secrets.";
+  "You are a helpful hackathon build logger. You help with summarizing build changes." +
+  "Never invent facts or expose secrets.";
 
 export async function callLlm(prompt: string): Promise<string> {
   const openRouterApiKey: string | undefined = process.env.OPENROUTER_API_KEY;
@@ -74,7 +74,7 @@ async function callOpenRouter(prompt: string, apiKey: string): Promise<string> {
         },
       ],
       reasoning: {
-        enabled: true,
+        enabled: false,
       },
     }),
   });
@@ -138,4 +138,41 @@ async function parseLlmResponse(
   }
 
   return stripCodeFence(content.trim());
+}
+
+export function buildPrompt(
+  commit: GitCommit,
+  lastLog: string | null,
+  evidence: string,
+): string {
+  return `Summarize meaningful product/behavioral changes from the evidence.
+
+FORMAT:
+**### ${formatCommitHeading(commit)}**
+
+<one concise paragraph ending with (\`file1\`, \`file2\`) Convex features: ...>
+
+Example:
+**### 2026-08-26 - a81c2f4**
+
+Created the initial event model with events, speakers, submissions, sessions, and rooms. Added event-scoped indexes and queries/mutations for managing event data (\`convex/schema.ts\`, \`convex/events.ts\`, \`convex/submissions.ts\`). Convex features: schema, tables, indexes, queries, mutations.
+
+RULES:
+- Output only the entry or \`null\`.
+- Return \`null\` for insignificant or duplicate changes compared with the latest log entry.
+- Describe user/product impact, not the commit message.
+- Use only evidence; never infer functionality from dependencies alone.
+- List affected files at the end of the paragraph, never in the heading.
+- Include only proven Convex features; use \`Convex features: none.\` otherwise.
+- No secrets, credentials, tokens, passwords, or environment values.
+- No extra text, bullets, or code fences.
+
+LATEST LOG:
+${lastLog || "(none)"}
+
+COMMIT:
+${commit.sha} | ${commit.date} | ${commit.message}
+
+EVIDENCE:
+${evidence}`;
 }

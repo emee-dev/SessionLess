@@ -1,6 +1,5 @@
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { callLlm } from "./llm";
 
 export interface GitCommit {
   sha: string;
@@ -23,9 +22,10 @@ export interface LlmResponse {
   }>;
 }
 
+const MAX_EVIDENCE_CHARS: number = 100_000;
+const MIN_FILE_EVIDENCE_CHARS: number = 1_000;
 export const ROOT: string = process.cwd();
 export const LOG_FILE: string = join(ROOT, "hackathon.md");
-export const LOG_FORMAT_FILE: string = join(ROOT, "scripts", "log-format.md");
 
 function runGit(args: string[]): string {
   const result: ReturnType<typeof Bun.spawnSync> = Bun.spawnSync(
@@ -148,6 +148,61 @@ function getFileDiff(commitSha: string, filePath: string): string {
   }
 }
 
+// function isSensitivePath(filePath: string): boolean {
+//   const normalized: string = filePath.replaceAll("\\", "/").toLowerCase();
+
+//   const filename: string = normalized.split("/").at(-1) ?? "";
+
+//   if (
+//     filename === ".env" ||
+//     filename.startsWith(".env.") ||
+//     filename.endsWith(".pem") ||
+//     filename.endsWith(".key") ||
+//     filename.endsWith(".crt") ||
+//     filename.endsWith(".p12") ||
+//     filename.endsWith(".pfx")
+//   ) {
+//     return true;
+//   }
+
+//   return (
+//     normalized.startsWith(".git/") ||
+//     normalized.includes("/node_modules/") ||
+//     normalized.includes("/.next/") ||
+//     normalized.includes("/dist/") ||
+//     normalized.includes("/build/")
+//   );
+// }
+
+// function isUsefulFile(filePath: string): boolean {
+//   const normalized: string = filePath.replaceAll("\\", "/").toLowerCase();
+
+//   if (isSensitivePath(normalized)) {
+//     return false;
+//   }
+
+//   const filename: string = normalized.split("/").at(-1) ?? "";
+
+//   const extension: string = filename.includes(".")
+//     ? `.${filename.split(".").at(-1)}`
+//     : "";
+
+//   const usefulExtensions: Set<string> = new Set([".ts", ".tsx", ".md", ".mdx"]);
+
+//   const importantFiles: Set<string> = new Set([
+//     "package.json",
+//     "convex.config.ts",
+//     "README",
+//     "README.md",
+//   ]);
+
+//   return usefulExtensions.has(extension) || importantFiles.has(filename);
+// }
+
+// export function filterChangedFiles(files: ChangedFile[]): ChangedFile[] {
+//   return files.filter((file: ChangedFile): boolean => isUsefulFile(file.path));
+// }
+
 function isSensitivePath(filePath: string): boolean {
   const normalized: string = filePath.replaceAll("\\", "/").toLowerCase();
 
@@ -170,7 +225,9 @@ function isSensitivePath(filePath: string): boolean {
     normalized.includes("/node_modules/") ||
     normalized.includes("/.next/") ||
     normalized.includes("/dist/") ||
-    normalized.includes("/build/")
+    normalized.includes("/build/") ||
+    normalized.startsWith("components/ui/") ||
+    normalized.includes("/components/ui/")
   );
 }
 
@@ -187,30 +244,13 @@ function isUsefulFile(filePath: string): boolean {
     ? `.${filename.split(".").at(-1)}`
     : "";
 
-  const usefulExtensions: Set<string> = new Set([
-    ".ts",
-    ".tsx",
-    ".js",
-    ".jsx",
-    ".mjs",
-    ".cjs",
-    ".json",
-    ".md",
-    ".mdx",
-    ".yaml",
-    ".yml",
-    ".toml",
-    ".sql",
-    ".html",
-    ".css",
-  ]);
+  const usefulExtensions: Set<string> = new Set([".ts", ".tsx", ".md", ".mdx"]);
 
   const importantFiles: Set<string> = new Set([
     "package.json",
     "convex.config.ts",
-    "tsconfig.json",
-    "README",
-    "README.md",
+    "readme",
+    "readme.md",
   ]);
 
   return usefulExtensions.has(extension) || importantFiles.has(filename);
@@ -228,18 +268,110 @@ export function readExistingLog(): string {
   return readFileSync(LOG_FILE, "utf8");
 }
 
-export function readLogFormat(): string {
-  if (!existsSync(LOG_FORMAT_FILE)) {
-    throw new Error("scripts/log-format.md does not exist");
-  }
-
-  return readFileSync(LOG_FORMAT_FILE, "utf8");
-}
-
 export function isAlreadyLogged(log: string, commit: GitCommit): boolean {
   return (
     log.includes(` - ${commit.shortSha}`) || log.includes(` - ${commit.sha}`)
   );
+}
+
+function truncateInParts(text: string, maxChars: number): string {
+  if (text.length <= maxChars) {
+    return text;
+  }
+
+  if (maxChars <= 100) {
+    return `${text.slice(0, maxChars)}\n[truncated]`;
+  }
+
+  const marker: string = "\n\n... [diff truncated] ...\n\n";
+  const available: number = maxChars - marker.length;
+
+  if (available <= 0) {
+    return text.slice(0, maxChars);
+  }
+
+  // Give the beginning and end more weight than the middle.
+  const firstSize: number = Math.ceil(available * 0.4);
+  const middleSize: number = Math.floor(available * 0.2);
+  const lastSize: number = available - firstSize - middleSize;
+
+  const first: string = text.slice(0, firstSize);
+  const middleStart: number = Math.max(
+    0,
+    Math.floor((text.length - middleSize) / 2),
+  );
+  const middle: string = text.slice(middleStart, middleStart + middleSize);
+  const last: string = text.slice(-lastSize);
+
+  return [
+    first,
+    "\n\n... [middle truncated] ...\n\n",
+    middle,
+    "\n\n... [middle truncated] ...\n\n",
+    last,
+  ].join("");
+}
+
+function truncateToLineBoundary(text: string, maxChars: number): string {
+  if (text.length <= maxChars) {
+    return text;
+  }
+
+  const truncated: string = text.slice(0, maxChars);
+  const lastNewline: number = truncated.lastIndexOf("\n");
+
+  return lastNewline > 0 ? truncated.slice(0, lastNewline) : truncated;
+}
+
+function allocateEvidenceBudget(
+  files: ChangedFile[],
+  maxChars: number,
+): Map<string, number> {
+  const budgets: Map<string, number> = new Map();
+
+  if (files.length === 0) {
+    return budgets;
+  }
+
+  const totalDiffSize: number = files.reduce(
+    (total: number, file: ChangedFile): number => total + file.diff.length,
+    0,
+  );
+
+  const minimumBudget: number = Math.min(
+    MIN_FILE_EVIDENCE_CHARS,
+    Math.floor(maxChars / files.length),
+  );
+
+  const minimumTotal: number = minimumBudget * files.length;
+
+  // If there are so many files that even the minimum allocation
+  // cannot fit, distribute the budget evenly.
+  if (minimumTotal >= maxChars) {
+    const baseBudget: number = Math.floor(maxChars / files.length);
+
+    for (const file of files) {
+      budgets.set(file.path, baseBudget);
+    }
+
+    return budgets;
+  }
+
+  let remaining: number = maxChars - minimumTotal;
+
+  for (const file of files) {
+    const proportionalBudget: number =
+      totalDiffSize > 0
+        ? Math.floor((file.diff.length / totalDiffSize) * remaining)
+        : 0;
+
+    budgets.set(
+      file.path,
+      Math.min(file.diff.length, minimumBudget + proportionalBudget),
+    );
+  }
+
+  return budgets;
 }
 
 export function buildEvidence(commit: GitCommit, files: ChangedFile[]): string {
@@ -255,26 +387,30 @@ export function buildEvidence(commit: GitCommit, files: ChangedFile[]): string {
     ].join("\n"),
   );
 
-  for (const file of files) {
-    if (!file.diff) {
+  const filesWithDiff: ChangedFile[] = files.filter(
+    (file: ChangedFile): boolean => Boolean(file.diff),
+  );
+
+  const budgets: Map<string, number> = allocateEvidenceBudget(
+    filesWithDiff,
+    MAX_EVIDENCE_CHARS,
+  );
+
+  for (const file of filesWithDiff) {
+    const budget: number = budgets.get(file.path) ?? 0;
+
+    if (budget <= 0) {
       continue;
     }
 
-    /*
-     * A diff is more useful than the complete file because
-     * it tells the model exactly what this commit changed.
-     */
-    const limitedDiff: string =
-      file.diff.length > 20_000
-        ? `${file.diff.slice(0, 20_000)}\n[diff truncated]`
-        : file.diff;
+    const diff: string = truncateInParts(file.diff, budget);
 
     sections.push(
       [
         `## Changed file: ${file.path}`,
         `Status: ${file.status}`,
         "```diff",
-        limitedDiff,
+        truncateToLineBoundary(diff, budget),
         "```",
       ].join("\n"),
     );
@@ -283,43 +419,7 @@ export function buildEvidence(commit: GitCommit, files: ChangedFile[]): string {
   return sections.join("\n\n");
 }
 
-export function buildPrompt(
-  commit: GitCommit,
-  existingLog: string,
-  evidence: string,
-): string {
-  return `Update hackathon.md using ONLY the repository evidence below.
-
-Return ONLY the complete hackathon.md contents. No code fences.
-
-Rules:
-- Preserve existing history and header values unless evidence proves they changed.
-- Add an entry only for meaningful behavioral/product changes; otherwise return the existing file unchanged.
-- Entry heading: ### ${formatCommitHeading(commit)}
-- Describe user/product impact, not the commit message.
-- Include the main affected files in parentheses.
-- Include Convex features only when proven by code/configuration.
-- Never invent features, deployments, URLs, integrations, models, components, auth, or database behavior.
-- Never output secrets, credentials, tokens, passwords, private data, or environment variable values.
-- Dependency presence alone does not prove a feature; require source/config evidence.
-- Keep entries concise and chronological.
-- Update "Last updated" only when a meaningful change is added.
-- Preserve the existing log format and field rules.
-
-CURRENT HACKATHON.MD:
-${existingLog || "(does not exist)"}
-
-COMMIT:
-${commit.sha} | ${commit.date} | ${commit.message}
-
-REPOSITORY EVIDENCE:
-${evidence}
-
-OUTPUT:
-Complete hackathon.md only.`;
-}
-
-function formatCommitHeading(commit: GitCommit): string {
+export function formatCommitHeading(commit: GitCommit): string {
   const date: string = commit.date.slice(0, 10);
 
   return `${date} - ${commit.shortSha}`;
@@ -341,106 +441,4 @@ export function stripCodeFence(text: string): string {
   }
 
   return text;
-}
-
-export function validateHackathonLog(log: string, commit: GitCommit): void {
-  if (!log.startsWith("# Hackathon log")) {
-    throw new Error("Generated log must start with '# Hackathon log'");
-  }
-
-  if (!log.includes("## Log")) {
-    throw new Error("Generated log is missing '## Log'");
-  }
-
-  if (log.includes("TODO")) {
-    throw new Error("Generated log contains TODO");
-  }
-
-  if (log.includes("```")) {
-    throw new Error("Generated log contains an unexpected code fence");
-  }
-
-  const shortShaPattern: RegExp = new RegExp(
-    `###\\s+\\d{4}-\\d{2}-\\d{2}\\s+-\\s+${escapeRegExp(commit.shortSha)}`,
-  );
-
-  /*
-   * It is acceptable for the LLM to determine that the commit
-   * is mechanical/no-op and therefore not add an entry.
-   *
-   * In that case the caller handles the unchanged output.
-   */
-  if (log !== readExistingLog() && !shortShaPattern.test(log)) {
-    throw new Error(
-      `Generated log changed but does not contain entry for ${commit.shortSha}`,
-    );
-  }
-
-  assertNoSecrets(log);
-  assertHeaderIsValid(log);
-}
-
-export function assertNoSecrets(log: string): void {
-  const forbiddenPatterns: RegExp[] = [
-    /-----BEGIN [^-]+ PRIVATE KEY-----/i,
-    /\bAKIA[0-9A-Z]{16}\b/,
-    /\bgh[pousr]_[A-Za-z0-9_]{20,}\b/,
-    /\bsk-[A-Za-z0-9_-]{20,}\b/,
-    /\bBearer\s+[A-Za-z0-9._~+/=-]{20,}/i,
-    /\b(password|passwd|secret|token|api[_-]?key)\s*[:=]\s*["']?[^\s"']+/i,
-    /\b[A-Za-z_]*(API_KEY|SECRET_KEY|ACCESS_TOKEN|PRIVATE_KEY)\s*[:=]\s*["']?[^\s"']+/i,
-  ];
-
-  for (const pattern of forbiddenPatterns) {
-    if (pattern.test(log)) {
-      throw new Error("Generated hackathon.md contains secret-shaped data");
-    }
-  }
-}
-
-export function assertHeaderIsValid(log: string): void {
-  const requiredFields: string[] = [
-    "**Project:**",
-    "**What it does:**",
-    "**Live app:**",
-    "**Repo:**",
-    "**Frontend:**",
-    "**Convex deployment:**",
-    "**Components:**",
-    "**Convex features:**",
-    "**Auth:**",
-    "**AI models:**",
-    "**Started:**",
-    "**Last updated:**",
-  ];
-
-  for (const field of requiredFields) {
-    if (!log.includes(field)) {
-      throw new Error(`Generated hackathon.md is missing ${field}`);
-    }
-  }
-}
-
-export function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-export async function updateLog(
-  commit: GitCommit,
-  existingLog: string,
-  prompt: string,
-): Promise<void> {
-  const generatedLog: string = await callLlm(prompt);
-
-  if (generatedLog === existingLog) {
-    console.log("No meaningful change detected. hackathon.md unchanged.");
-
-    return;
-  }
-
-  validateHackathonLog(generatedLog, commit);
-
-  writeFileSync(LOG_FILE, `${generatedLog.trim()}\n`, "utf8");
-
-  console.log(`hackathon.md updated for ${commit.shortSha}.`);
 }

@@ -1,6 +1,7 @@
+import { updateLog } from "@/scripts/parse_markdown";
+import { buildPrompt } from "./llm";
 import {
   buildEvidence,
-  buildPrompt,
   ChangedFile,
   filterChangedFiles,
   GitCommit,
@@ -8,13 +9,11 @@ import {
   getLatestProjectCommit,
   isAlreadyLogged,
   readExistingLog,
-  readLogFormat,
-  updateLog,
 } from "./utils";
 
-export const LLM_MODEL: string = process.env.LLM_MODEL ?? "gpt-5.6";
+// export const LLM_MODEL: string = process.env.LLM_MODEL ?? "gpt-5.6";
 
-function main(): void {
+async function main() {
   console.log("Updating hackathon.md...");
 
   const commit: GitCommit | null = getLatestProjectCommit();
@@ -31,7 +30,6 @@ function main(): void {
 
   if (isAlreadyLogged(existingLog, commit)) {
     console.log(`Commit ${commit.shortSha} is already logged.`);
-
     return;
   }
 
@@ -45,25 +43,12 @@ function main(): void {
 
   if (changedFiles.length === 0) {
     console.log("No relevant source/configuration files changed.");
-
     return;
   }
 
-  const logFormat: string = readLogFormat();
-
   const evidence: string = buildEvidence(commit, changedFiles);
 
-  // console.log(evidence);
-
-  const prompt: string = buildPrompt(commit, existingLog, evidence);
-
-  console.log(`Calling ${LLM_MODEL}...`);
-
-  /*
-   * main() is synchronous so we cannot await the API here.
-   * The actual asynchronous entry point is below.
-   */
-  void updateLog(commit, existingLog, prompt);
+  await updateLog(commit, evidence);
 }
 
 main();
