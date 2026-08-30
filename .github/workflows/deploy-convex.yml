@@ -21,6 +21,9 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Install pnpm
+        run: bun install -g pnpm
+
       - name: Build Nextjs
         run: bun run build
 
