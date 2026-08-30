@@ -27,6 +27,7 @@ jobs:
       - name: Deploy Convex functions
         run: bunx convex deploy 
         env:
+          CONVEX_DEPLOYMENT: ${{ secrets.CONVEX_DEPLOYMENT }}
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
 
       - name: Deploy Nextjs Static Export
