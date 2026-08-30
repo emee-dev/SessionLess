@@ -35,3 +35,5 @@ jobs:
 
       - name: Deploy Nextjs Static Export
         run: bun run deploy
+        env:
+          CONVEX_DEPLOYMENT: ${{ secrets.CONVEX_DEPLOYMENT }}
