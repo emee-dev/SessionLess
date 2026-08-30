@@ -51,10 +51,6 @@ function runGit(args: string[]): string {
 export function getLatestProjectCommit(): GitCommit | null {
   /*
    * Find the latest commit that changed something other
-   * than hackathon.md.
-   *
-   * This prevents the workflow's own generated commit
-   * from becoming the next commit that gets summarized.
    */
   const commits: string = runGit([
     "log",
@@ -148,61 +144,6 @@ function getFileDiff(commitSha: string, filePath: string): string {
   }
 }
 
-// function isSensitivePath(filePath: string): boolean {
-//   const normalized: string = filePath.replaceAll("\\", "/").toLowerCase();
-
-//   const filename: string = normalized.split("/").at(-1) ?? "";
-
-//   if (
-//     filename === ".env" ||
-//     filename.startsWith(".env.") ||
-//     filename.endsWith(".pem") ||
-//     filename.endsWith(".key") ||
-//     filename.endsWith(".crt") ||
-//     filename.endsWith(".p12") ||
-//     filename.endsWith(".pfx")
-//   ) {
-//     return true;
-//   }
-
-//   return (
-//     normalized.startsWith(".git/") ||
-//     normalized.includes("/node_modules/") ||
-//     normalized.includes("/.next/") ||
-//     normalized.includes("/dist/") ||
-//     normalized.includes("/build/")
-//   );
-// }
-
-// function isUsefulFile(filePath: string): boolean {
-//   const normalized: string = filePath.replaceAll("\\", "/").toLowerCase();
-
-//   if (isSensitivePath(normalized)) {
-//     return false;
-//   }
-
-//   const filename: string = normalized.split("/").at(-1) ?? "";
-
-//   const extension: string = filename.includes(".")
-//     ? `.${filename.split(".").at(-1)}`
-//     : "";
-
-//   const usefulExtensions: Set<string> = new Set([".ts", ".tsx", ".md", ".mdx"]);
-
-//   const importantFiles: Set<string> = new Set([
-//     "package.json",
-//     "convex.config.ts",
-//     "README",
-//     "README.md",
-//   ]);
-
-//   return usefulExtensions.has(extension) || importantFiles.has(filename);
-// }
-
-// export function filterChangedFiles(files: ChangedFile[]): ChangedFile[] {
-//   return files.filter((file: ChangedFile): boolean => isUsefulFile(file.path));
-// }
-
 function isSensitivePath(filePath: string): boolean {
   const normalized: string = filePath.replaceAll("\\", "/").toLowerCase();
 
@@ -225,7 +166,12 @@ function isSensitivePath(filePath: string): boolean {
     normalized.includes("/node_modules/") ||
     normalized.includes("/.next/") ||
     normalized.includes("/dist/") ||
+    normalized.startsWith("scripts/") ||
+    normalized.includes("/scripts/") ||
+    normalized.startsWith("convex/_generated/") ||
+    normalized.includes("/convex/_generated/") ||
     normalized.includes("/build/") ||
+    normalized.includes("hackathon.md") ||
     normalized.startsWith("components/ui/") ||
     normalized.includes("/components/ui/")
   );

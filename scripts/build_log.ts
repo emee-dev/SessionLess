@@ -11,8 +11,6 @@ import {
   readExistingLog,
 } from "./utils";
 
-// export const LLM_MODEL: string = process.env.LLM_MODEL ?? "gpt-5.6";
-
 async function main() {
   console.log("Updating hackathon.md...");
 
@@ -48,6 +46,7 @@ async function main() {
 
   const evidence: string = buildEvidence(commit, changedFiles);
 
+  
   await updateLog(commit, evidence);
 }
 
