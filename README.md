@@ -1,1 +1,1 @@
-SessionLess is an Open Source SessionBoard alternative for speakers featuring live dashboard, speaker portals, declarative form creation, speaker tasks and attachments.
+SessionLess is an Open Source SessionBoard alternative for speakers featuring live dashboard, speaker portals, declarative form creation, speaker tasks and file attachments.
