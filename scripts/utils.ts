@@ -156,7 +156,8 @@ function isSensitivePath(filePath: string): boolean {
     filename.endsWith(".key") ||
     filename.endsWith(".crt") ||
     filename.endsWith(".p12") ||
-    filename.endsWith(".pfx")
+    filename.endsWith(".pfx") ||
+    filename.endsWith(".test.ts")
   ) {
     return true;
   }
