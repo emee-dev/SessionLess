@@ -170,6 +170,8 @@ function isSensitivePath(filePath: string): boolean {
     normalized.includes("/scripts/") ||
     normalized.startsWith("convex/_generated/") ||
     normalized.includes("/convex/_generated/") ||
+    normalized.startsWith("dsl/generated/") ||
+    normalized.includes("/dsl/generated/") ||
     normalized.includes("/build/") ||
     normalized.includes("hackathon.md") ||
     normalized.startsWith("components/ui/") ||
