@@ -9,7 +9,8 @@
     "start": "next start",
     "log": "bun run scripts/build_log.ts",
     "upload": "pnpm static-hosting upload --build --dist ./out",
-    "deploy": "pnpm static-hosting deploy --skip-build --dist ./out"
+    "deploy": "pnpm static-hosting deploy --skip-build --dist ./out",
+    "grammar": "pnpm peggy --format es --output dsl/generated/grammar.js dsl/grammar.peggy"
   },
   "keywords": [],
   "author": "",
@@ -26,6 +27,7 @@
     "convex": "^1.43.0",
     "cross-env": "^10.1.0",
     "next": "16.3.0",
+    "peggy": "^5.1.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "shadcn": "^4.19.0",
