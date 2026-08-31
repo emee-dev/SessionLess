@@ -1,0 +1,63 @@
+// Example dynamic form: speaker application
+form {
+	name: "Speaker Application"
+	description: "Speaker submission form"
+
+	defaultValues: {
+		country: "NG"
+		age: 20
+	}
+
+	text name "Full Name" {
+		required(true, {
+			error: "Name is required"
+		})
+	}
+
+	number age "Age" {
+		min(18, {
+			error: "Must be at least 18"
+		})
+
+		show(true, {
+			when: _.country === "NG"
+		})
+
+		/* duplicate rule with different options - must NOT be merged */
+		required(true)
+		required(true, {
+			when: _.country === "NG"
+		})
+	}
+
+	select country "Country" {
+		required(true)
+	}
+
+	attachment avatar "Headshot" {
+		max("2MB", {
+			error: "File is too large"
+		})
+
+		allow("*.{png,jpg,pdf}", {
+			error: "Invalid file type",
+			when: _.country === "NG"
+		})
+	}
+
+	reference event.room "Event Room" {
+		required(true)
+	}
+
+	reference event.track "Event Track" {
+		required(true)
+	}
+
+	on_submit_event {
+		disable(true, {
+			when: _.age < 18
+		})
+
+		label("Submit application")
+	}
+}

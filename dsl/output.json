@@ -1,0 +1,164 @@
+{
+  "name": "Speaker Application",
+  "description": "Speaker submission form",
+  "defaultValues": {
+    "country": "NG",
+    "age": 20
+  },
+  "metadata": {
+    "name": "Speaker Application",
+    "description": "Speaker submission form",
+    "defaultValues": {
+      "country": "NG",
+      "age": 20
+    }
+  },
+  "fields": [
+    {
+      "type": "text",
+      "name": "name",
+      "label": "Full Name",
+      "rules": [
+        {
+          "type": "required",
+          "scope": "name",
+          "args": [
+            true,
+            {
+              "error": "Name is required"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "number",
+      "name": "age",
+      "label": "Age",
+      "rules": [
+        {
+          "type": "min",
+          "scope": "age",
+          "args": [
+            18,
+            {
+              "error": "Must be at least 18"
+            }
+          ]
+        },
+        {
+          "type": "show",
+          "scope": "age",
+          "args": [
+            true,
+            {
+              "when": "_.country === \"NG\""
+            }
+          ]
+        },
+        {
+          "type": "required",
+          "scope": "age",
+          "args": [true]
+        },
+        {
+          "type": "required",
+          "scope": "age",
+          "args": [
+            true,
+            {
+              "when": "_.country === \"NG\""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "name": "country",
+      "label": "Country",
+      "rules": [
+        {
+          "type": "required",
+          "scope": "country",
+          "args": [true]
+        }
+      ]
+    },
+    {
+      "type": "attachment",
+      "name": "avatar",
+      "label": "Headshot",
+      "rules": [
+        {
+          "type": "max",
+          "scope": "avatar",
+          "args": [
+            "2MB",
+            {
+              "error": "File is too large"
+            }
+          ]
+        },
+        {
+          "type": "allow",
+          "scope": "avatar",
+          "args": [
+            "*.{png,jpg,pdf}",
+            {
+              "error": "Invalid file type",
+              "when": "_.country === \"NG\""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "reference",
+      "name": "room",
+      "source": "event.room",
+      "label": "Event Room",
+      "rules": [
+        {
+          "type": "required",
+          "scope": "room",
+          "args": [true]
+        }
+      ]
+    },
+    {
+      "type": "reference",
+      "name": "track",
+      "source": "event.track",
+      "label": "Event Track",
+      "rules": [
+        {
+          "type": "required",
+          "scope": "track",
+          "args": [true]
+        }
+      ]
+    }
+  ],
+  "submitEvent": {
+    "type": "event",
+    "name": "on_submit_event",
+    "rules": [
+      {
+        "type": "disable",
+        "scope": "on_submit_event",
+        "args": [
+          true,
+          {
+            "when": "_.age < 18"
+          }
+        ]
+      },
+      {
+        "type": "label",
+        "scope": "on_submit_event",
+        "args": ["Submit application"]
+      }
+    ]
+  }
+}
