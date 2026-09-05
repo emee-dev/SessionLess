@@ -11,17 +11,25 @@ export const generateUploadUrl = mutation({
 
 export const createAttachment = mutation({
   args: {
-    fileName: v.string(),
     eventId: v.id("events"),
-    fileId: v.optional(v.id("_storage")),
-    fileUrl: v.optional(v.string()),
+    label: v.string(),
+    message: v.optional(v.string()),
+
+    type: v.union(v.literal("file"), v.literal("link")),
+
+    fileName: v.optional(v.string()),
+    storageId: v.optional(v.id("_storage")),
+    url: v.optional(v.string()),
   },
   async handler(ctx, args) {
     await ctx.db.insert("attachments", {
+      label: args.label,
       fileName: args.fileName,
       eventId: args.eventId,
-      fileId: args.fileId,
-      fileUrl: args.fileUrl,
+      storageId: args.storageId,
+      url: args.url,
+      message: args.message,
+      type: args.type,
     });
   },
 });

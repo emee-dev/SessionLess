@@ -9,6 +9,7 @@
 //   - which reference sources actually exist ("event.room", ...)
 
 import type { FormAST, FormFieldNode, RuleNode } from "./ast";
+import { isReferenceField } from "./parser";
 
 export interface RuleSchema {
   /** Field types this rule may be attached to. Use "*" to allow any/all,
@@ -90,7 +91,7 @@ function validateField(
 ): void {
   const path = `fields[${index}]`;
 
-  if (field.type === "reference") {
+  if (isReferenceField(field)) {
     if (!schema.referenceSources.includes(field.source)) {
       issues.push({
         path,

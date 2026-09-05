@@ -1,4 +1,3 @@
-import "./styles.css";
 import Link from "next/link";
 
 const shadowBtn =
@@ -438,12 +437,15 @@ function Navbar() {
             </Link>
           </span>
         </nav>
-        <Link
+        {/* Info: Use the default link to manually load the page. Prevents landing page
+        css from leaking into the dashboard styles */}
+
+        <a
           href="/~"
           className={`border-2 border-ink bg-paper2 px-4 py-2 font-mono text-sm font-bold text-ink ${shadowBtn}`}
         >
           Dashboard
-        </Link>
+        </a>
       </div>
     </header>
   );

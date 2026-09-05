@@ -1,41 +1,8 @@
-// ============================================================================
-// Dynamic Form DSL Grammar
-//
-// This grammar is intentionally "dumb" about semantics. It knows nothing
-// about specific field types (text, number, select, ...), specific rule/
-// function names (required, show, max, allow, ...), or specific option
-// names (error, when, ...). All of that is generic:
-//
-//   - field types are just identifiers
-//   - rules are just `Identifier "(" Arguments? ")"`
-//   - option/property names inside objects are just identifiers
-//
-// Adding a brand new rule/function such as `readonly(true)` or
-// `futureRule(1, 2, { when: _.x })` requires ZERO grammar changes, because
-// the grammar only ever recognizes the *shape* `name(args)`, never the
-// specific `name`.
-//
-// Semantic validation (does this rule exist, is it valid for this field
-// type, are these option names allowed, does this reference exist, ...)
-// is intentionally left out of this grammar and belongs to a separate
-// TypeScript validation layer (see src/validate.ts).
-// ============================================================================
-
 {{
-  // Helper used only inside grammar actions (runs in the generated parser
-  // module scope). Kept tiny and purely syntactic.
-//   function buildRawArgs(first, rest) {
-//     if (first === null) return [];
-//     return [first, ...rest.map((r) => r[3])];
-//   }
-    function buildRawArgs(first, rest) {
-      return [first, ...rest.map((r) => r[3])];
-    }
+  function buildRawArgs(first, rest) {
+    return [first, ...rest.map((r) => r[3])];
+  }
 }}
-
-// ---------------------------------------------------------------------------
-// Entry point
-// ---------------------------------------------------------------------------
 
 Start
   = _ form:Form _ {
@@ -95,9 +62,6 @@ DottedPath
       return [first, ...rest.map((r) => r[1])].join(".");
     }
 
-// ---------------------------------------------------------------------------
-// Submit event:  on_submit_event { <rules> }
-// ---------------------------------------------------------------------------
 
 SubmitEvent
   = "on_submit_event" _ "{" _ rules:RuleList _ "}" {
@@ -108,11 +72,8 @@ SubmitEvent
       };
     }
 
-// ---------------------------------------------------------------------------
 // Generic metadata property:  <identifier>: <value>
 // Covers `name: "..."`, `description: "..."`, `defaultValues: {...}`,
-// and any future top-level metadata key without grammar changes.
-// ---------------------------------------------------------------------------
 
 MetadataProperty
   = key:Identifier _ ":" _ value:ArgumentValue {
@@ -123,10 +84,8 @@ MetadataProperty
       };
     }
 
-// ---------------------------------------------------------------------------
-// Rules: generic `functionName(args)` calls. Never hard-coded.
-// ---------------------------------------------------------------------------
 
+// Rules: generic `functionName(args)` calls. Never hard-coded.
 RuleList
   = first:Rule rest:(_ Rule)* {
       return [first, ...rest.map((r) => r[1])];
@@ -150,15 +109,11 @@ ArgumentList
 
 // An argument (or an object-property value) is either a well-formed
 // JSON-like literal, or -- when it isn't -- a raw, un-evaluated expression
-// string. The grammar never interprets the expression; it only captures
-// its exact source text.
+// string.
 ArgumentValue
   = Value
   / Expression
 
-// ---------------------------------------------------------------------------
-// Values: strings, numbers, booleans, null, arrays, objects
-// ---------------------------------------------------------------------------
 
 Value
   = ObjectLiteral
@@ -252,7 +207,7 @@ HexDigit4
 HexDigit
   = [0-9a-fA-F]
 
-// ---------------------------------------------------------------------------
+
 // Expressions: raw, opaque, un-evaluated JS-like snippets, e.g.
 //   _.age >= 18
 //   _.country === "US"
@@ -265,7 +220,6 @@ HexDigit
 // group opened inside the expression itself. Nested parens/brackets/
 // braces and quoted strings are consumed whole so that commas/parens
 // inside them never terminate the expression early.
-// ---------------------------------------------------------------------------
 
 Expression
   = parts:ExpressionPart+ {
@@ -308,9 +262,6 @@ ExprString
       return "'" + chars.map((c) => (Array.isArray(c) ? c.join("") : c)).join("") + "'";
     }
 
-// ---------------------------------------------------------------------------
-// Identifiers
-// ---------------------------------------------------------------------------
 
 Identifier
   = !ReservedWord chars:$(IdentStart IdentPart*) { return chars; }
@@ -327,10 +278,6 @@ IdentStart
 
 IdentPart
   = [a-zA-Z0-9_$]
-
-// ---------------------------------------------------------------------------
-// Whitespace & comments
-// ---------------------------------------------------------------------------
 
 _ "whitespace"
   = (WhiteSpace / Comment)*

@@ -106,22 +106,33 @@ export default defineSchema({
   }).index("by_eventId", ["eventId"]),
 
   attachments: defineTable({
-    fileName: v.string(),
     eventId: v.id("events"),
-    fileId: v.optional(v.id("_storage")),
-    fileUrl: v.optional(v.string()),
-  }).index("by_eventId", ["eventId"]),
+    label: v.string(),
+    message: v.optional(v.string()),
 
+    type: v.union(v.literal("file"), v.literal("link")),
+
+    fileName: v.optional(v.string()),
+    storageId: v.optional(v.id("_storage")),
+    url: v.optional(v.string()),
+  }).index("by_eventId", ["eventId"]),
   submissions: defineTable({
     eventsId: v.id("events"),
     speakerId: v.id("speakers"),
     title: v.string(),
+    track: v.string(),
+    room: v.string(),
+
     abstractData: v.record(v.string(), v.any()),
     participantData: v.record(v.string(), v.any()),
     evaluation: v.union(
-      v.literal("pending"),
-      v.literal("rejected"),
-      v.literal("accepted"),
+      // v.literal("pending"),
+      // v.literal("rejected"),
+      // v.literal("accepted"),
+      v.literal("Draft"),
+      v.literal("Pending"),
+      v.literal("Rejected"),
+      v.literal("Accepted"),
     ),
     // Starts at 0 meaning it has not been edited
     // greater than 0 means it has been edited

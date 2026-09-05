@@ -1,8 +1,9 @@
 import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { parseForm } from "./index";
 import type { FieldNode, ReferenceNode } from "./src/ast";
-import { DSLParseError, DSLSyntaxError, parseForm } from "./src/parser";
+import { DSLParseError, DSLSyntaxError } from "./src/parser";
 import { validateForm } from "./src/validate";
 
 const inputDSL = join(process.cwd(), "dsl", "input.tio");

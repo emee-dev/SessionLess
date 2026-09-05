@@ -8,8 +8,11 @@
  * @module
  */
 
+import type * as attachments from "../attachments.js";
+import type * as events from "../events.js";
 import type * as http from "../http.js";
 import type * as staticHosting from "../staticHosting.js";
+import type * as tasks from "../tasks.js";
 
 import type {
   ApiFromModules,
@@ -18,8 +21,11 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  attachments: typeof attachments;
+  events: typeof events;
   http: typeof http;
   staticHosting: typeof staticHosting;
+  tasks: typeof tasks;
 }>;
 
 /**

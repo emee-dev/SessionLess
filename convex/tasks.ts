@@ -90,7 +90,7 @@ export const listTaskResponses = query({
 
 export const completeTask = mutation({
   args: {
-    taskResponseId: v.id("task_responses"),
+    eventTaskId: v.id("eventTasks"),
     values: v.array(
       v.object({
         id: v.string(),
@@ -102,7 +102,16 @@ export const completeTask = mutation({
     isComplete: v.boolean(),
   },
   async handler(ctx, args) {
-    return ctx.db.patch(args.taskResponseId, {
+    const task = await ctx.db
+      .query("task_responses")
+      .withIndex("by_event_taskId", (q) =>
+        q.eq("eventTaskId", args.eventTaskId),
+      )
+      .first();
+
+    if (!task) return;
+
+    return ctx.db.patch(task._id, {
       values: args.values,
       isComplete: args.isComplete,
     });

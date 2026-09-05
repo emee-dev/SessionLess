@@ -35,6 +35,7 @@ import type {
   RawMetadataItem,
   RawReferenceItem,
   RawRule,
+  ReferenceNode,
   RuleNode,
 } from "./ast.js";
 
@@ -88,6 +89,12 @@ function shapeEvent(item: RawEventItem): EventNode {
     rules: shapeRules(item.rules, item.name),
   };
 }
+
+export const isReferenceField = (
+  item: FormFieldNode,
+): item is ReferenceNode => {
+  return item.type === "reference";
+};
 
 /**
  * Build the final FormAST from the raw syntax tree produced by the
@@ -153,18 +160,6 @@ export function buildFormAST(raw: RawForm): FormAST {
     fields,
     submitEvent,
   };
-}
-
-/**
- * Parse Dynamic Form DSL source text into a shaped `FormAST`.
- *
- * Throws `DSLSyntaxError` (re-exported Peggy `SyntaxError`) for malformed
- * DSL syntax, or `DSLParseError` for structural problems detected during
- * shaping (currently: more than one `on_submit_event` block).
- */
-export function parseForm(source: string): FormAST {
-  const raw = pegParse(source, { grammarSource: "form.dsl" }) as RawForm;
-  return buildFormAST(raw);
 }
 
 export type {

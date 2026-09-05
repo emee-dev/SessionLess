@@ -12,7 +12,7 @@
 * **Auth:** none
 * **AI models:** none
 * **Started:** 2026-08-26T10:15:00Z
-* **Last updated:** 2026-08-31T14:11:21.145Z
+* **Last updated:** 2026-09-03T14:22:43.701Z
 
 ## Log
 
@@ -27,3 +27,11 @@ Implemented a complete landing page with hero section, live demo preview showing
 **### 2026-08-31 - 003fdf3**
 
 Implemented a Peggy.js DSL grammar for declarative form creation with a three-layer architecture: raw syntax tree types mirroring the grammar output, a shaped AST with typed nodes for fields, references, and submit events, and a semantic validation layer enforcing allowed field types, rules, and reference sources. The parser transforms raw grammar output into a structured FormAST with metadata extraction, rule scoping, and duplicate event detection, while the validator checks rule applicability, option keys, and known reference paths against a caller-supplied schema (`dsl/src/ast.ts`, `dsl/src/parser.ts`, `dsl/src/validate.ts`). Convex features: none.
+
+**### 2026-09-03 - 83a7712**
+
+Adds server‑side support for file attachments, enabling clients to obtain a signed upload URL, create attachment records linked to events, and retrieve paginated lists of attachments per event using an indexed query. (`convex/attachments.ts`) Convex features: mutation, query, pagination, indexes.
+
+**### 2026-09-03 - 569f889**
+
+Adds server‑side task management for events, allowing organizers to create, update, and paginate event‑scoped tasks with structured requirements (text or checkbox fields). When a task is created, a response record is automatically generated for every speaker linked to the event. Speakers can then list their assigned task responses and submit completed values, marking tasks as done. (`convex/tasks.ts`) Convex features: mutation, query, pagination, indexes.
