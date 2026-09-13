@@ -1,11 +1,6 @@
-import {
-  SyntaxError as PeggySyntaxError,
-  parse as pegParse,
-} from "./generated/grammar.js";
-import { FormAST, RawForm } from "./src/ast.js";
-import { buildFormAST } from "./src/parser.js";
+import { TioForm } from "@/dsl-runtime/types.js";
+import { parse as pegParse } from "./generated/grammar.js";
 
-export function parseForm(source: string): FormAST {
-  const raw = pegParse(source, { grammarSource: "form.dsl" }) as RawForm;
-  return buildFormAST(raw);
+export function parseDSL(source: string): TioForm {
+  return pegParse(source);
 }

@@ -1,20 +1,11 @@
 "use client";
 
-import {
-  Circle,
-  FileText,
-  Folder,
-  Home as HomeIcon,
-  ListTodo,
-  User,
-} from "lucide-react";
+import { Circle } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { mockAttachments } from "@/components/attachments";
-import { Charts } from "@/components/charts";
 import { PaginatedDataTable } from "@/components/data-table";
-import { abstractSubmissionColumns } from "@/components/organizer-tables/abstractSubmissionColumns";
 import { attachmentColumns } from "@/components/organizer-tables/attachmentColumn";
 import { abstractsColumns } from "@/components/speaker-tables/abstractsColumn";
 import { tasksColumns as tasksColumn } from "@/components/speaker-tables/tasksColumn";
@@ -24,79 +15,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Doc, Id } from "@/convex/_generated/dataModel";
+import { Doc } from "@/convex/_generated/dataModel";
 import { layouts, portal } from "@/lib/constant";
 import { mockSubmissions } from "../~/page";
 
 type Submissions = Doc<"submissions">;
-
-// const mockSubmissions: Submissions[] = [
-//   {
-//     title: "Draft: agent memory",
-//     track: "Breakout",
-//     evaluation: "Draft",
-//     editVersion: 0,
-//     room: "Main Hall",
-//     eventsId: "1" as Id<"events">,
-//     abstractData: {},
-//     participantData: {},
-//     _id: "00" as Id<"submissions">,
-//     _creationTime: Date.now(),
-//     speakerId: "12" as Id<"speakers">,
-//   },
-//   {
-//     title: "Scaling LLM agents in production",
-//     track: "Breakout",
-//     evaluation: "Rejected",
-//     editVersion: 0,
-//     room: "Hall 4",
-//     eventsId: "1" as Id<"events">,
-//     abstractData: {},
-//     participantData: {},
-//     _id: "00" as Id<"submissions">,
-//     _creationTime: Date.now(),
-//     speakerId: "12" as Id<"speakers">,
-//   },
-//   {
-//     title: "Eval-driven agent design",
-//     track: "Breakout",
-//     evaluation: "Pending",
-//     editVersion: 0,
-//     room: "Hall 12",
-//     eventsId: "1" as Id<"events">,
-//     abstractData: {},
-//     participantData: {},
-//     _id: "00" as Id<"submissions">,
-//     _creationTime: Date.now(),
-//     speakerId: "12" as Id<"speakers">,
-//   },
-//   {
-//     title: "From RAG to riches",
-//     track: "Featured Keynote",
-//     evaluation: "Accepted",
-//     editVersion: 0,
-//     room: "Main Hall",
-//     eventsId: "1" as Id<"events">,
-//     abstractData: {},
-//     participantData: {},
-//     _id: "00" as Id<"submissions">,
-//     _creationTime: Date.now(),
-//     speakerId: "12" as Id<"speakers">,
-//   },
-//   {
-//     title: "Agents in the enterprise",
-//     track: "Breakout",
-//     evaluation: "Accepted",
-//     editVersion: 0,
-//     room: "Auditorium",
-//     eventsId: "1" as Id<"events">,
-//     abstractData: {},
-//     participantData: {},
-//     _id: "00" as Id<"submissions">,
-//     _creationTime: Date.now(),
-//     speakerId: "12" as Id<"speakers">,
-//   },
-// ];
 
 const tasks = [
   {

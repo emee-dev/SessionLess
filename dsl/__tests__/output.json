@@ -1,0 +1,69 @@
+{
+  "name": "Speaker Application",
+  "description": "Speaker submission form",
+  "defaultValues": {
+    "country": "NG",
+    "age": 20
+  },
+  "static": [
+    {
+      "expr": "",
+      "action": "placeholder(\"Your age\");",
+      "target": "name"
+    },
+    {
+      "expr": "",
+      "action": "minlength(18);",
+      "target": "age"
+    },
+    {
+      "expr": "",
+      "action": "placeholder(\"Your age\");",
+      "target": "age"
+    },
+    {
+      "expr": "",
+      "action": "required(true);",
+      "target": "event.room"
+    }
+  ],
+  "fields": [
+    {
+      "type": "text",
+      "id": "name",
+      "label": "Full Name",
+      "modifier": "public",
+      "actions": [
+        {
+          "expr": "_.name === 'Abc' and _.age >= 10",
+          "action": "show(\"greeting\"); hide(\"warning\");"
+        },
+        {
+          "expr": "_.name === 'Abc' and _.age >= 10",
+          "action": "show(\"\"); hide(\"\");"
+        }
+      ]
+    },
+    {
+      "type": "number",
+      "id": "age",
+      "label": "Age",
+      "modifier": "private",
+      "actions": []
+    },
+    {
+      "type": "reference",
+      "id": "event.room",
+      "label": "Event Room",
+      "modifier": "private",
+      "actions": []
+    },
+    {
+      "type": "reference",
+      "id": "on_submit_event",
+      "label": "Submit application",
+      "modifier": "private",
+      "actions": []
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+
+GET http://localhost:3000/api?storageId=adba05e0-c357-417e-b073-df0c65606431
+
+
+PUT http://localhost:3000/api
+Content-Type: application/json

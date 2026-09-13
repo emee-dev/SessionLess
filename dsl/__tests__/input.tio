@@ -1,0 +1,27 @@
+form {
+	name: "Speaker Application"
+	description: "Speaker submission form"
+	defaultValues: {
+		country: "NG"
+		age: 20
+	}
+	
+	pub text name "Full Name" {
+		if _.name === 'Abc' and _.age >= 10 then show("greeting"), hide("warning");
+		if _.name === 'Abc' and _.age >= 10 then show(""),hide("");
+		placeholder("Your age");
+	}
+
+	number age "Age" {
+		minlength(18);
+		placeholder("Your age");
+	}
+
+	reference event.room "Event Room" {
+		required(true)	
+	}
+
+	reference on_submit_event "Submit application" {
+
+	}
+}

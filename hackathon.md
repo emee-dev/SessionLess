@@ -12,7 +12,7 @@
 * **Auth:** none
 * **AI models:** none
 * **Started:** 2026-08-26T10:15:00Z
-* **Last updated:** 2026-09-03T14:22:43.701Z
+* **Last updated:** 2026-09-13T01:06:43.701Z
 
 ## Log
 
@@ -35,3 +35,8 @@ Adds server‑side support for file attachments, enabling clients to obtain a si
 **### 2026-09-03 - 569f889**
 
 Adds server‑side task management for events, allowing organizers to create, update, and paginate event‑scoped tasks with structured requirements (text or checkbox fields). When a task is created, a response record is automatically generated for every speaker linked to the event. Speakers can then list their assigned task responses and submit completed values, marking tasks as done. (`convex/tasks.ts`) Convex features: mutation, query, pagination, indexes.
+
+**### 2026-09-05 - 904146d**
+
+Implements POC organization and speaker dashboard flows. Adds a new event creation page with event details, rooms/tracks, dates, deadlines, and save functionality. Refactors attachments to support labeled **files or links** with optional messages, storage IDs, and URLs. Updates the schema and submission statuses to use capitalized `Draft`, `Pending`, `Rejected`, and `Accepted` values. Also changes task completion to resolve a task response by `eventTaskId` before updating it. (`app/~/create_event/page.tsx`, `convex/attachments.ts`, `convex/schema.ts`, `convex/tasks.ts`, etc) Convex features: mutation, query, pagination, indexes.
+

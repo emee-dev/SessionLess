@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Geist, Geist_Mono, Inter, Roboto } from "next/font/google";
 import { ConvexClientProvider } from "@/components/convex-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
@@ -22,6 +22,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const roboto = Roboto({
+  subsets: ["latin"],
+  variable: "--font-roboto",
+});
+
 export const metadata: Metadata = {
   title: "SessionLess",
   description:
@@ -38,6 +43,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         geistSans.variable,
         geistMono.variable,
         geist.variable,
+        roboto.variable,
         "font-sans",
         inter.variable,
       )}

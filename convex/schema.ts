@@ -116,6 +116,17 @@ export default defineSchema({
     storageId: v.optional(v.id("_storage")),
     url: v.optional(v.string()),
   }).index("by_eventId", ["eventId"]),
+
+  formAttachments: defineTable({
+    fieldId: v.string(),
+    eventId: v.id("events"),
+    fileName: v.string(),
+    contentType: v.string(),
+    storageId: v.id("_storage"),
+    formType: v.union(v.literal("participant"), v.literal("proposal")),
+  })
+    .index("by_fieldId_and_formType", ["fieldId", "formType"])
+    .index("by_storageId", ["storageId"]),
   submissions: defineTable({
     eventsId: v.id("events"),
     speakerId: v.id("speakers"),
@@ -126,9 +137,6 @@ export default defineSchema({
     abstractData: v.record(v.string(), v.any()),
     participantData: v.record(v.string(), v.any()),
     evaluation: v.union(
-      // v.literal("pending"),
-      // v.literal("rejected"),
-      // v.literal("accepted"),
       v.literal("Draft"),
       v.literal("Pending"),
       v.literal("Rejected"),
